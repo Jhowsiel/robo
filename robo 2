@@ -7,14 +7,14 @@
 #define ENA 9
 #define ENB 10
 #define LED_BUILTIN 13
-#define LINE_SENSOR_PIN A0 // sensor de linha (analógico)
+#define LINE_SENSOR_PIN A0 // Sensor de linha
 #define INITIAL_DELAY 20000 // 20 segundos antes de ativar detecção
 
 unsigned long startMillis;
 unsigned long currentMillis;
 bool detectionMode = false;
 unsigned long lastTriggerTime = 0;
-unsigned long triggerInterval = 50; // Intervalo entre as leituras do sensor
+unsigned long triggerInterval = 50; // Intervalo entre leituras do sensor
 
 void setup() {
   pinMode(IN1, OUTPUT);
@@ -26,10 +26,10 @@ void setup() {
   pinMode(TRIGGER_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(LINE_SENSOR_PIN, INPUT);
+  pinMode(LINE_SENSOR_PIN, INPUT); // Sensor de linha como entrada
   digitalWrite(LED_BUILTIN, LOW);
 
-  startMillis = millis(); // Marca o tempo inicial ao ligar o robô
+  startMillis = millis(); // Marca o tempo inicial
 }
 
 void loop() {
@@ -38,31 +38,31 @@ void loop() {
   // Após 20 segundos, entra no modo de detecção
   if (currentMillis - startMillis >= INITIAL_DELAY) {
     detectionMode = true;
-    digitalWrite(LED_BUILTIN, HIGH); // Acende o LED quando em modo de detecção
+    digitalWrite(LED_BUILTIN, HIGH); // LED aceso no modo de detecção
 
     if (currentMillis - lastTriggerTime >= triggerInterval) {
       lastTriggerTime = currentMillis; // Atualiza o tempo da última leitura
 
       // Envia o pulso ultrassônico
       digitalWrite(TRIGGER_PIN, LOW);
-      delayMicroseconds(2); // Usando diretamente, pois é muito curto para afetar
+      delayMicroseconds(2);
       digitalWrite(TRIGGER_PIN, HIGH);
       delayMicroseconds(10);
       digitalWrite(TRIGGER_PIN, LOW);
 
-      // Mede o tempo de retorno do eco com timeout
+      // Mede o tempo do eco com timeout
       long duration = pulseIn(ECHO_PIN, HIGH, 20000); // Timeout de 20ms
-      long distance = duration * 0.034 / 2;
+      long distance = duration * 0.034 / 2; // Converte para cm
 
-      // Verifica o sensor de linha
+      // Verifica o sensor de linha (borda branca)
       if (detectWhiteArea()) {
-        moveBackwardSlow(); // Move devagar para trás ao detectar área branca
+        moveBackwardSlow(); // Recuar devagar ao detectar área branca
       } 
-      // Se a distância for menor ou igual a 20 cm, o robô deve avançar
+      // Se a distância for menor ou igual a 20 cm, avança
       else if (distance > 0 && distance <= 20) {
-        moveForward();
+        moveForward(); // Avança em direção ao alvo
       } else {
-        stopMotors();
+        stopMotors(); // Se não houver alvo, para
       }
     }
   }
@@ -71,7 +71,7 @@ void loop() {
 // Função para detectar área branca usando o sensor de linha
 bool detectWhiteArea() {
   int sensorValue = analogRead(LINE_SENSOR_PIN); // Ler valor do sensor de linha
-  int threshold = 500; // Limite para definir branco (ajuste conforme necessário)
+  int threshold = 500; // Limite para definir branco
   return sensorValue > threshold; // Retorna true se detectar branco
 }
 
@@ -85,15 +85,17 @@ void moveBackwardSlow() {
   analogWrite(ENB, 100); // Velocidade reduzida
 }
 
+// Função para mover o robô para frente
 void moveForward() {
-  digitalWrite(IN1, LOW);  // Direção corrigida
-  digitalWrite(IN2, HIGH); // Direção corrigida
-  digitalWrite(IN3, LOW);  // Direção corrigida
-  digitalWrite(IN4, HIGH); // Direção corrigida
+  digitalWrite(IN1, LOW);  
+  digitalWrite(IN2, HIGH); 
+  digitalWrite(IN3, LOW);  
+  digitalWrite(IN4, HIGH); 
   analogWrite(ENA, 255); // Velocidade máxima
   analogWrite(ENB, 255); // Velocidade máxima
 }
 
+// Função para parar os motores
 void stopMotors() {
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
